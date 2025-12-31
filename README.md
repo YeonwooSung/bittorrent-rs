@@ -58,26 +58,31 @@ src/
 - Peer 리스트 조회
 - Compact/Dictionary 형식 지원
 
-### 4. Peer 프로토콜 (기본 구조 완료 🔨)
+### 4. Peer 프로토콜 (완료 ✅)
 - Handshake 프로토콜
 - Peer 메시지 직렬화/역직렬화
 - TCP 연결 관리
-- **TODO**: 실제 다운로드 로직 구현 필요
+- 다운로드 로직 구현
+- 에러 처리 및 타임아웃
+- Peer 상태 관리
 
-### 5. Piece 관리 (기본 구조 완료 🔨)
+### 5. Piece 관리 (완료 ✅)
 - Rarest-first 전략
+- Random first piece 전략
 - Piece 검증 (SHA1)
 - Block 단위 다운로드
-- **TODO**: Endgame 모드 구현 필요
+- Endgame 모드 구현
 
 ### 6. Storage 관리 (기본 구조 완료 🔨)
 - 멀티 파일 지원
 - Global offset 기반 I/O
 - **TODO**: Resume 기능 구현 필요
 
-### 7. Client 오케스트레이터 (기본 구조 완료 🔨)
+### 7. Client 오케스트레이터 (완료 ✅)
 - 모든 컴포넌트 조율
-- **TODO**: 전체 다운로드 플로우 구현 필요
+- 다중 peer 동시 다운로드
+- 진행률 모니터링
+- 자동 재시도 로직
 
 ## 빌드 및 실행
 
@@ -105,40 +110,38 @@ cargo run -- download -t <torrent-file> -o <output-dir>
 - ✅ .torrent 파일 파싱
 - ✅ Info hash 계산
 - ✅ Tracker 통신 및 peer 리스트 조회
-- ✅ Peer 프로토콜 메시지 정의
-- ✅ Piece 관리 기본 구조
+- ✅ Peer 프로토콜 메시지 정의 및 통신
+- ✅ Piece 관리 (다운로드, 검증, 저장)
 - ✅ 파일 I/O 기본 구조
 - ✅ CLI 인터페이스
+- ✅ 다중 peer 동시 다운로드
+- ✅ Random first piece 전략
+- ✅ Rarest-first piece 선택
+- ✅ Endgame 모드
+- ✅ 진행률 모니터링
+- ✅ 에러 처리 및 타임아웃
 
 ### 구현 필요 사항
 
-#### 1. Peer 다운로드 로직
-현재 `client/mod.rs`의 `download` 함수는 tracker에서 peer 리스트만 가져오고 실제 다운로드는 하지 않습니다.
-
-**구현이 필요한 부분:**
-- [ ] Peer 연결 풀 관리
-- [ ] 비동기 다운로드 (여러 peer에서 동시에)
+#### 1. 고급 Peer 관리
 - [ ] Choking 알고리즘 (Tit-for-tat)
 - [ ] Request pipelining (한 번에 여러 block 요청)
+- [ ] Peer 연결 풀 최적화
 
-#### 2. Piece 선택 최적화
-- [ ] Endgame 모드 (마지막 몇 개 piece 처리)
-- [ ] Random first piece (초기 랜덤 선택)
-
-#### 3. Resume 기능
+#### 2. Resume 기능
 - [ ] 다운로드 상태 저장
 - [ ] 이미 다운로드된 piece 검증 및 재개
 
-#### 4. DHT (분산 해시 테이블)
+#### 3. DHT (분산 해시 테이블)
 - [ ] Trackerless 토렌트 지원
 - [ ] BEP 5 구현
 
-#### 5. 성능 최적화
+#### 4. 성능 최적화
 - [ ] Disk I/O 버퍼링
 - [ ] 메모리 풀 사용
 - [ ] Zero-copy 최적화
 
-#### 6. 추가 기능
+#### 5. 추가 기능
 - [ ] Seeding (업로드)
 - [ ] UPnP/NAT-PMP 지원
 - [ ] Magnet link 지원
@@ -146,28 +149,33 @@ cargo run -- download -t <torrent-file> -o <output-dir>
 
 ## 다음 단계
 
-### 1단계: 단순 다운로드 구현
-가장 먼저 구현해야 할 것은 단일 peer로부터 순차적으로 piece를 다운로드하는 기본 로직입니다.
+### ~~1단계: 단순 다운로드 구현~~ ✅ 완료
+~~가장 먼저 구현해야 할 것은 단일 peer로부터 순차적으로 piece를 다운로드하는 기본 로직입니다.~~
 
-**구현 위치**: `src/client/mod.rs`의 `download` 함수
+**구현 완료**:
+1. ✅ Peer 리스트에서 peer 선택 및 연결
+2. ✅ Handshake 및 연결 관리
+3. ✅ Interested/Unchoke 메시지 처리
+4. ✅ Block 요청 및 수신
+5. ✅ Piece 검증 및 저장
+6. ✅ 진행률 표시
 
-**구현 내용**:
-1. Peer 리스트에서 첫 번째 peer 선택
-2. Handshake 및 연결
-3. Interested 메시지 전송
-4. Unchoke 대기
-5. 각 piece에 대해:
-   - 필요한 block들 요청
-   - Block 수신 및 조합
-   - SHA1 검증
-   - 디스크에 저장
-6. 진행률 표시
+### ~~2단계: 멀티 Peer 다운로드~~ ✅ 완료
+~~여러 peer로부터 동시에 다운로드하도록 확장합니다.~~
 
-### 2단계: 멀티 Peer 다운로드
-여러 peer로부터 동시에 다운로드하도록 확장합니다.
+**구현 완료**:
+1. ✅ 다중 peer 연결
+2. ✅ 동시 다운로드 작업 관리
+3. ✅ Piece picker를 통한 작업 분배
+4. ✅ Random first & Rarest-first 전략
+5. ✅ Endgame 모드
 
 ### 3단계: 최적화 및 고급 기능
-Choking 알고리즘, Endgame 모드, Resume 등을 추가합니다.
+다음으로 구현할 기능들:
+1. Resume 기능 (다운로드 재개)
+2. Choking 알고리즘 최적화
+3. Request pipelining
+4. DHT 지원 (Trackerless torrents)
 
 ## 아키텍처 설계 원칙
 
