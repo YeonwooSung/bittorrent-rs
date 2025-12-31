@@ -42,9 +42,7 @@ impl PeerConnection {
 
         // Verify info hash
         if peer_handshake.info_hash != info_hash {
-            return Err(BittorrentError::PeerError(
-                "Info hash mismatch".to_string(),
-            ));
+            return Err(BittorrentError::PeerError("Info hash mismatch".to_string()));
         }
 
         info!("Successfully connected to peer: {}", addr);
@@ -62,6 +60,16 @@ impl PeerConnection {
     pub async fn send_message(&mut self, message: &PeerMessage) -> Result<()> {
         let bytes = message.to_bytes();
         self.stream.write_all(&bytes).await?;
+
+        // Update our state based on what we sent
+        match message {
+            PeerMessage::Choke => self.state.am_choking = true,
+            PeerMessage::Unchoke => self.state.am_choking = false,
+            PeerMessage::Interested => self.state.am_interested = true,
+            PeerMessage::NotInterested => self.state.am_interested = false,
+            _ => {}
+        }
+
         debug!("Sent message to {}: {:?}", self.addr, message);
         Ok(())
     }
